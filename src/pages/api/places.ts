@@ -12,6 +12,8 @@ export default function handler(
   res.status(200).json({
     places: [
       {
+        id: "hitchin-coffee-lab",
+        slug: "hitchin-coffee-lab",
         name: "Hitchin Coffee Lab",
         address: "29 Sun Street",
         telephone: null,
