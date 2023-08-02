@@ -1,7 +1,9 @@
 import Image from "next/image";
 import type { GetStaticProps } from "next";
-
 import { Place } from "../types";
+import Head from 'next/head';
+import { Dropdown } from "flowbite-react";
+
 
 type Props = {
   places: Place[];
@@ -19,10 +21,12 @@ export const getStaticProps: GetStaticProps<{
 export default function Home(props: Props) {
   const { places } = props;
 
-  console.log(">>", places);
+  console.log(">>>>>", places);
   return (
+    
     <div className="h-full">
       <div className="relative isolate px-6 pt-14 lg:px-8">
+        
         <div className="mx-auto max-w-2xl py-32 sm:py-0 lg:py-24">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
@@ -32,6 +36,7 @@ export default function Home(props: Props) {
               Your friendly guide to hanging out in Hitchin
             </p>
           </div>
+          <input type="search" />
         </div>
       </div>
       <div className="mt-6 space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-6 lg:space-y-0 p-6 flex-wrap">
