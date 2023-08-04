@@ -1,0 +1,30 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Place {
+  slug       String         @id
+  name       String
+  address    String
+  telephone  String?
+  url        String?
+  latitude   Decimal        @db.Decimal(8, 6)
+  longitude  Decimal        @db.Decimal(9, 6)
+  what3Words String?
+  imageUrl   String
+  tags       Tag[]
+}
+
+model Tag {
+  id     Int            @id @default(autoincrement())
+  name   String         @unique
+  places Place[]
+}

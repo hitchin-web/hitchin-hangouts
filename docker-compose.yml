@@ -1,0 +1,19 @@
+---
+version: "3.8"
+services:
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: hitchin
+    ports:
+      - 5432:5432
+    volumes:
+      - ./docker/postgres/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
