@@ -2,17 +2,33 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
-First, run the development server:
+You will need 3 terminals...
+
+The first to run the database and Adminer:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+docker-compose up # Creates a PostgreSQL database and Adminer
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The second to run commands:
+
+```bash
+cp .env.example .env.local # Set configuration variables
+yarn install               # Install dependencies into node_modules
+yarn run migrate           # Run database migrations & generate types
+yarn run seed              # Add seed information to database
+```
+
+And finally, a third to run the dev server:
+
+```bash
+yarn dev                   # Start the server
+```
+
+In your browser:
+
+ * Open [http://localhost:8080](https://localhost:8080) to access Adminer.
+ * Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 

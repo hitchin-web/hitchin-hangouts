@@ -1,5 +1,4 @@
 export type Place = {
-  id: string;
   slug: string;
   name: string;
   address: string;
