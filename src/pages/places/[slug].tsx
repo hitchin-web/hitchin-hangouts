@@ -1,26 +1,46 @@
-import { useRouter } from 'next/router'
+import { useRouter } from "next/router";
 import type { GetStaticProps, GetStaticPaths } from "next";
 import { Place } from "../../types";
+import Image from "next/image";
+import Link from "next/link";
+import { Badge } from "flowbite-react";
 
+import Footer from "../../components/Footer";
+
+const ZOOM_FACTOR = 0.0002;
+
+/*******************************************************************************
+  Types
+ ******************************************************************************/
+
+type Props = {
+  place: Place;
+};
+
+/*******************************************************************************
+  Server-side
+ ******************************************************************************/
+
+// To statically generate all the details pages, Nextjs needs to know the
+// params to pass to each variant. We load all the places and return the slugs
+// of each as params.
 export const getStaticPaths: GetStaticPaths = async () => {
-  const res = await fetch(`${process.env.HOST}/api/places`);
-  const json = await res.json();
+  const response = await fetch(`${process.env.HOST}/api/places`);
+  const json = await response.json();
   const places = json.places;
 
   return {
-    paths: places.map((place: Place) => ({ params: { slug: place.slug }})),
-    fallback: true, // false or "blocking"
-  }
-}
+    paths: places.map((place: Place) => ({ params: { slug: place.slug } })),
+    fallback: true,
+  };
+};
 
-export const getStaticProps: GetStaticProps<{
-  place: Place
-}> = async (props) => {
-  console.log('>>>getStaticProps', props)
+// And for each page, where the slug is passed, we return the place object.
+export const getStaticProps: GetStaticProps<Props> = async (props) => {
+  const { slug } = props.params;
 
-  const res = await fetch(`${process.env.HOST}/api/places`);
-  const json = await res.json();
-  const place = json.places.find((place: Place) => place.slug === props.params?.slug)
+  const response = await fetch(`${process.env.HOST}/api/places/${slug}`);
+  const place = await response.json();
 
   if (place == null) {
     return { notFound: true };
@@ -29,15 +49,63 @@ export const getStaticProps: GetStaticProps<{
   return { props: { place } };
 };
 
+/*******************************************************************************
+  Component
+ ******************************************************************************/
 
-export default function Place(props: {places: Place[]}) {
-  
+export default function Place(props: Props) {
+  const { place } = props;
+
+  const latitude = place.latitude == null ? null : Number(place.latitude);
+  const longitude = place.longitude == null ? null : Number(place.longitude);
+
+  // ----------------------------
+  // Render:
+
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24`}
-    >
-      <h1>Hitchin Hangouts</h1>
-      
-    </main>
+    <section className="min-h-full flex flex-col">
+      <header>
+        {latitude != null && longitude != null && (
+          <iframe
+            title="Map"
+            className="w-full h-72"
+            frameBorder="0"
+            scrolling="no"
+            marginHeight={0}
+            marginWidth={0}
+            width="100%"
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${
+              latitude - ZOOM_FACTOR
+            }%2C${longitude - ZOOM_FACTOR * 5}%2C${latitude + ZOOM_FACTOR}%2C${
+              longitude + ZOOM_FACTOR
+            }&layer=hot&marker=${longitude}%2C${latitude}`}
+            loading="lazy"
+          ></iframe>
+        )}
+        {latitude == null ||
+          (longitude == null && <div className="w-full h-64 bg-gray-200" />)}
+        <Image
+          src={place.imageUrl}
+          width={200}
+          height={200}
+          alt={place.name}
+          className="mx-auto rounded-full w-48 h-48 object-cover -mt-24 relative border-8 border-white"
+        />
+        <h1 className="m-2 text-4xl font-bold text-center">{place.name}</h1>
+        <p className="text-gray-500 dark:text-gray-400 text-center">
+          {place.address}
+        </p>
+      </header>
+      <section className="max-w-md flex-grow py-12 mx-auto">
+        <div className="flex flex-wrap gap-2">
+          {place.tags.map((tag) => (
+            <Link key={tag.id} href={`/tags/${tag.slug}`}>
+              <Badge color="gray">{tag.name}</Badge>
+            </Link>
+          ))}
+        </div>
+      </section>
+      <Footer />
+    </section>
   );
 }

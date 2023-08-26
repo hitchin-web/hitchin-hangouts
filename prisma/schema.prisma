@@ -11,21 +11,30 @@ datasource db {
 }
 
 model Place {
-  id         Int     @id @default(autoincrement())
-  slug       String
-  name       String
-  address    String
-  telephone  String?
-  url        String?
-  latitude   Decimal @db.Decimal(8, 6)
-  longitude  Decimal @db.Decimal(9, 6)
-  what3Words String?
-  imageUrl   String
-  tags       Tag[]
+  slug         String     @id
+  name         String
+  address      String
+  telephone    String?
+  url          String?
+  latitude     Decimal    @db.Decimal(8, 6)
+  longitude    Decimal    @db.Decimal(9, 6)
+  what3Words   String?
+  openingTimes String?
+  imageUrl     String
+  categories   Category[]
+  tags         Tag[]
+}
+
+model Category {
+  id     Int     @id @default(autoincrement())
+  slug   String  @unique
+  name   String
+  places Place[]
 }
 
 model Tag {
   id     Int     @id @default(autoincrement())
-  name   String  @unique
+  slug   String  @unique
+  name   String
   places Place[]
 }

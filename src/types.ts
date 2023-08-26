@@ -1,3 +1,13 @@
+export type Tag = {
+  slug: string;
+  name: string;
+};
+
+export type Category = {
+  slug: string;
+  name: string;
+};
+
 export type Place = {
   slug: string;
   name: string;
@@ -8,5 +18,7 @@ export type Place = {
   longitude: number | null;
   what3Words: string | null;
   imageUrl: string;
-  tags: string[];
+  openingTimes: string | null;
+  categories: Category[];
+  tags: Tag[];
 };

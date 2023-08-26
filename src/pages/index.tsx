@@ -1,64 +1,154 @@
-import Image from "next/image";
+import { useState, useMemo } from "react";
+import Link from "next/link";
 import type { GetStaticProps } from "next";
 import { Place } from "../types";
-import Head from 'next/head';
-import { Dropdown } from "flowbite-react";
+import Head from "next/head";
+import { Button } from "flowbite-react";
 
+import PlaceCard from "../components/PlaceCard";
+import Footer from "../components/Footer";
+
+/*******************************************************************************
+  Types
+ ******************************************************************************/
 
 type Props = {
   places: Place[];
 };
 
+/*******************************************************************************
+  Server-side
+ ******************************************************************************/
+
 export const getStaticProps: GetStaticProps<{
   places: Place[];
+  categories: string[];
+  tags: string[];
 }> = async () => {
-  const res = await fetch(`${process.env.HOST}/api/places`);
-  const json = await res.json();
-  const places = json.places;
-  return { props: { places } };
+  const promises = [
+    fetch(`${process.env.HOST}/api/places`).then((r) => r.json()),
+    fetch(`${process.env.HOST}/api/categories`).then((r) => r.json()),
+    fetch(`${process.env.HOST}/api/tags`).then((r) => r.json()),
+  ];
+  const responses = Object.assign({}, ...(await Promise.all(promises)));
+  const { places, categories, tags } = responses;
+  return { props: { places, categories, tags } };
 };
 
-export default function Home(props: Props) {
-  const { places } = props;
+/*******************************************************************************
+  Component
+ ******************************************************************************/
 
-  console.log(">>>>>", places);
+export default function Home(props: Props) {
+  const { places, categories, tags } = props;
+
+  // ----------------------------
+  // State:
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // ----------------------------
+  // Effects:
+
+  const filteredPlaces = useMemo(() => {
+    return places.filter((place) => {
+      const placeCategorySlugs = place.categories.map((c) => c.slug);
+      const categoryMatch =
+        selectedCategories.length === 0 ||
+        selectedCategories.some((cat) => placeCategorySlugs.includes(cat.slug));
+
+      if (!categoryMatch) {
+        return false;
+      }
+
+      const placeTagSlugs = place.tags.map((t) => t.slug);
+      const tagMatch =
+        selectedTags.length === 0 ||
+        selectedTags.every((tag) => placeTagSlugs.includes(tag.slug));
+
+      return tagMatch;
+    });
+  }, [places, selectedCategories, selectedTags]);
+
+  // ----------------------------
+  // Event handlers:
+
+  const onToggleCategory = (category: string) => {
+    setSelectedCategories((existing) => {
+      const isSelected = existing.includes(category);
+      if (isSelected) {
+        return existing.filter((item) => item !== category);
+      }
+      return [...existing, category];
+    });
+  };
+
+  const onToggleTag = (tag: string) => {
+    setSelectedTags((existing) => {
+      const isSelected = existing.includes(tag);
+      if (isSelected) {
+        return existing.filter((item) => item !== tag);
+      }
+      return [...existing, tag];
+    });
+  };
+
+  // ----------------------------
+  // Render:
+
   return (
-    
-    <div className="h-full">
-      <div className="relative isolate px-6 pt-14 lg:px-8">
-        
-        <div className="mx-auto max-w-2xl py-32 sm:py-0 lg:py-24">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-              Hitchin Hangouts
-            </h1>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
-              Your friendly guide to hanging out in Hitchin
-            </p>
-          </div>
-          <input type="search" />
+    <section className="h-full flex flex-col">
+      <header className="px-4 py-2">
+        <h1 className="text-3xl font-bold">Hitchin Hangouts</h1>
+        <p className="text-md text-gray-500">
+          Your guide to where to go in Hitchin
+        </p>
+      </header>
+      <section>
+        <fieldset className="flex flex-wrap gap-2 items-center justify-center my-12">
+          <legend className="text-xl font-bold text-center relative -top-4">
+            What would you like to discover?
+          </legend>
+          {categories.map((category) => (
+            <Button
+              key={category.slug}
+              aria-checked={selectedCategories.includes(category)}
+              gradientDuoTone="pinkToOrange"
+              outline={!selectedCategories.includes(category)}
+              onClick={() => onToggleCategory(category)}
+            >
+              {category.name}
+            </Button>
+          ))}
+        </fieldset>
+        <fieldset className="flex flex-wrap gap-2 items-center justify-center my-12">
+          <legend className="text-xl font-bold text-center relative -top-4">
+            ...and what whould you like to find?
+          </legend>
+          {tags.map((tag) => (
+            <Button
+              key={tag.slug}
+              aria-checked={selectedTags.includes(tag)}
+              gradientDuoTone="pinkToOrange"
+              outline={!selectedTags.includes(tag)}
+              onClick={() => onToggleTag(tag)}
+            >
+              {tag.name}
+            </Button>
+          ))}
+        </fieldset>
+      </section>
+      <section className="py-6 flex-grow">
+        <div className="flex gap-4 items-center justify-center flex-wrap">
+          {filteredPlaces.map((place) => (
+            <Link key={place.id} href={`/places/${place.slug}`}>
+              <PlaceCard place={place} />
+            </Link>
+          ))}
         </div>
-      </div>
-      <div className="mt-6 space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-6 lg:space-y-0 p-6 flex-wrap">
-        {places.map((place) => (
-          <div key={place.slug} className="group relative max-w-xs">
-            <div className="relative h-80 w-full overflow-hidden rounded-lg bg-white sm:aspect-h-1 sm:aspect-w-2 lg:aspect-h-1 lg:aspect-w-1 group-hover:opacity-75 sm:h-64">
-              <img
-                src={place.imageUrl}
-                alt={place.name}
-                className="h-full w-full object-cover object-center"
-              />
-            </div>
-            <h3 className="mt-6 text-base font-semibold text-gray-900">
-              <a href={`/places/${place.slug}`}>
-                <span className="absolute inset-0" />
-                {place.name}
-              </a>
-            </h3>
-            <p className="text-sm text-gray-500">{place.address}</p>
-          </div>
-        ))}
-      </div>
-    </div>
+      </section>
+      <Footer />
+    </section>
   );
 }
