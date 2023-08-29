@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import type { GetStaticProps, GetStaticPaths } from "next";
-import { Tag } from "../../types";
+import { Place, Tag } from "../../types";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "flowbite-react";
@@ -38,7 +38,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 // And for each page, where the tag slug is passed, we return alls the place
 // objects for the matching places.
 export const getStaticProps: GetStaticProps<Props> = async (props) => {
-  const { slug } = props.params;
+  const slug = String(props.params?.slug ?? "");
 
   const promises = [
     await fetch(`${process.env.HOST}/api/tags/${slug}`).then((r) => r.json()),
@@ -79,7 +79,7 @@ export default function TagListing(props: Props) {
       <section className="flex-grow py-6">
         <div className="flex gap-4 items-center justify-center flex-wrap">
           {places.map((place) => (
-            <Link key={place.id} href={`/places/${place.slug}`}>
+            <Link key={place.slug} href={`/places/${place.slug}`}>
               <PlaceCard place={place} />
             </Link>
           ))}

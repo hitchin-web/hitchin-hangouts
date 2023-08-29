@@ -1,7 +1,7 @@
 import prisma from "../../../lib/prismaClient";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { Tag } from "../../../types";
+import { Tag, NotFoundError } from "../../../types";
 
 /*******************************************************************************
   Handler
@@ -9,9 +9,14 @@ import { Tag } from "../../../types";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Tag>
+  res: NextApiResponse<Tag | NotFoundError>
 ) {
   const slug = String(req.query.slug);
   const tag = await prisma.tag.findUnique({ where: { slug } });
-  res.status(200).json(tag);
+
+  if (tag == null) {
+    res.status(404).json({ error: "not found" });
+  } else {
+    res.status(200).json(tag);
+  }
 }

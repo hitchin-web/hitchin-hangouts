@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { GetStaticProps } from "next";
-import { Place } from "../types";
+import { Place, Category, Tag } from "../types";
 import Head from "next/head";
 import { Button } from "flowbite-react";
 
@@ -14,6 +14,8 @@ import Footer from "../components/Footer";
 
 type Props = {
   places: Place[];
+  categories: Category[];
+  tags: Tag[];
 };
 
 /*******************************************************************************
@@ -45,27 +47,34 @@ export default function Home(props: Props) {
   // ----------------------------
   // State:
 
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
   // ----------------------------
   // Effects:
 
   const filteredPlaces = useMemo(() => {
-    return places.filter((place) => {
-      const placeCategorySlugs = place.categories.map((c) => c.slug);
+    return places.filter((place: Place) => {
+      // @ts-ignore: Not sure why it thinks there's no categories property on place 🤷
+      const placeCategorySlugs = place.categories.map(
+        (category: Category) => category.slug
+      );
+
       const categoryMatch =
         selectedCategories.length === 0 ||
-        selectedCategories.some((cat) => placeCategorySlugs.includes(cat.slug));
+        selectedCategories.some((category: Category) =>
+          placeCategorySlugs.includes(category.slug)
+        );
 
       if (!categoryMatch) {
         return false;
       }
 
-      const placeTagSlugs = place.tags.map((t) => t.slug);
+      // @ts-ignore: Not sure why it thinks there's no tags property on place 🤷
+      const placeTagSlugs = place.tags.map((tag: Tag) => tag.slug);
       const tagMatch =
         selectedTags.length === 0 ||
-        selectedTags.every((tag) => placeTagSlugs.includes(tag.slug));
+        selectedTags.every((tag: Tag) => placeTagSlugs.includes(tag.slug));
 
       return tagMatch;
     });
@@ -74,7 +83,7 @@ export default function Home(props: Props) {
   // ----------------------------
   // Event handlers:
 
-  const onToggleCategory = (category: string) => {
+  const onToggleCategory = (category: Category) => {
     setSelectedCategories((existing) => {
       const isSelected = existing.includes(category);
       if (isSelected) {
@@ -84,7 +93,7 @@ export default function Home(props: Props) {
     });
   };
 
-  const onToggleTag = (tag: string) => {
+  const onToggleTag = (tag: Tag) => {
     setSelectedTags((existing) => {
       const isSelected = existing.includes(tag);
       if (isSelected) {
@@ -142,7 +151,7 @@ export default function Home(props: Props) {
       <section className="py-6 flex-grow">
         <div className="flex gap-4 items-center justify-center flex-wrap">
           {filteredPlaces.map((place) => (
-            <Link key={place.id} href={`/places/${place.slug}`}>
+            <Link key={place.slug} href={`/places/${place.slug}`}>
               <PlaceCard place={place} />
             </Link>
           ))}

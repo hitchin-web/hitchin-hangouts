@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import type { GetStaticProps, GetStaticPaths } from "next";
-import { Place } from "../../types";
+import { Place, Tag } from "../../types";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "flowbite-react";
@@ -31,13 +31,13 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
   return {
     paths: places.map((place: Place) => ({ params: { slug: place.slug } })),
-    fallback: true,
+    fallback: false,
   };
 };
 
 // And for each page, where the slug is passed, we return the place object.
 export const getStaticProps: GetStaticProps<Props> = async (props) => {
-  const { slug } = props.params;
+  const slug = String(props.params?.slug ?? "");
 
   const response = await fetch(`${process.env.HOST}/api/places/${slug}`);
   const place = await response.json();
@@ -98,7 +98,8 @@ export default function Place(props: Props) {
       </header>
       <section className="max-w-md flex-grow py-12 mx-auto">
         <div className="flex flex-wrap gap-2">
-          {place.tags.map((tag) => (
+          {/* @ts-ignore: Not sure why it thinks there's no tags property on place 🤷 */}
+          {place.tags.map((tag: Tag) => (
             <Link key={tag.id} href={`/tags/${tag.slug}`}>
               <Badge color="gray">{tag.name}</Badge>
             </Link>

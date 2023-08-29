@@ -1,6 +1,7 @@
 import prisma from "../../../lib/prismaClient";
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { Place } from "../../../types";
+import type { Place, NotFoundError } from "../../../types";
+import { prismaPlaceToPlace } from "../../../lib/transforms";
 
 /*******************************************************************************
   Handler
@@ -8,19 +9,18 @@ import type { Place } from "../../../types";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Place | null>
+  res: NextApiResponse<Place | NotFoundError>
 ) {
   const slug = String(req.query.slug);
-  const result = await prisma.place.findUnique({
+  const response = await prisma.place.findUnique({
     where: { slug },
     include: { tags: true, categories: true },
   });
 
-  const place: Place = {
-    ...result,
-    longitude: place.longitude.toNumber(),
-    latitude: place.latitude.toNumber(),
-  };
-
-  res.status(200).json(place ?? null);
+  if (response == null) {
+    res.status(404).json({ error: "not found" });
+  } else {
+    const place: Place = prismaPlaceToPlace(response);
+    res.status(200).json(place);
+  }
 }

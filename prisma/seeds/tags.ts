@@ -19,7 +19,7 @@ export const tags: PlainTag[] = [
   { slug: "dog-friendly", name: "Dog-friendly" },
   { slug: "laptop-friendly", name: "Laptop-friendly" },
   { slug: "pizza", name: "Pizza" },
-  { slug: "pub grub", name: "Pub grub" },
+  { slug: "pub-grub", name: "Pub grub" },
   { slug: "vegan-friendly", name: "Vegan-friendly" },
   { slug: "wifi", name: "Wifi" },
 ];

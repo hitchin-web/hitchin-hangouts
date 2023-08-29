@@ -52,7 +52,7 @@ export const places: PlainPlace[] = [
     categories: ["pub"],
     tags: [
       "beer",
-      "pub grub",
+      "pub-grub",
       "vegan-friendly",
       "dog-friendly",
       "laptop-friendly",
