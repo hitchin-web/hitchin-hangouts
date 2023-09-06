@@ -1,12 +1,12 @@
-export type Place = {
-  slug: string;
-  name: string;
-  address: string;
-  telephone: string | null;
-  url: string | null;
+import { Prisma, Place as PrismaPlace } from "@prisma/client";
+
+export type { Tag, Category } from "@prisma/client";
+
+export type Place = Omit<PrismaPlace, "latitude" | "longitude"> & {
   latitude: number | null;
   longitude: number | null;
-  what3Words: string | null;
-  imageUrl: string;
-  tags: string[];
+};
+
+export type NotFoundError = {
+  error: "not found";
 };

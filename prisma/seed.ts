@@ -1,29 +1,57 @@
-import { PrismaClient } from '@prisma/client'
-import { places } from './seeds/places'
+import { PrismaClient } from "@prisma/client";
+import { categories } from "./seeds/categories";
+import { places } from "./seeds/places";
+import { tags } from "./seeds/tags";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 /**
  * Seeds the databaes with default data.
  */
 async function main() {
-  // Convert places from POJO to Prisma upsert
-  const result = places.map(async place => prisma.place.upsert({
-    where: { slug: place.slug },
-    update: {},
-    create: {
-      ...place,
-      // Tags are a joined model, so need to connect or create by unique name
-      tags: {
-        connectOrCreate: place.tags.map(tag => ({
-          where: { name: tag },
-          create: { name: tag },
-        })),
-      }
-    },
-  }))
+  // Seed categories and tags
+  const prerequisites = [
+    ...categories.map((category) =>
+      prisma.category.upsert({
+        where: { slug: category.slug },
+        update: {},
+        create: category,
+      })
+    ),
+    ...tags.map((tag) =>
+      prisma.tag.upsert({
+        where: { slug: tag.slug },
+        update: {},
+        create: tag,
+      })
+    ),
+  ];
+  await Promise.all(prerequisites);
 
-  await Promise.all(result)
+  // Convert places from POJO to Prisma upsert
+  const result = [
+    places.map(async (place) =>
+      prisma.place.upsert({
+        where: { slug: place.slug },
+        update: {},
+        create: {
+          ...place,
+          categories: {
+            connect: place.categories.map((category) => ({
+              slug: category,
+            })),
+          },
+          tags: {
+            connect: place.tags.map((tag) => ({
+              slug: tag,
+            })),
+          },
+        },
+      })
+    ),
+  ];
+
+  await Promise.all(result);
 
   // Some feedback to the user
   console.log(result);
@@ -32,10 +60,10 @@ async function main() {
 // Run seeds then safely close the database connection
 main()
   .then(async () => {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
