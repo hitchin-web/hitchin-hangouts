@@ -7,6 +7,8 @@ import { Button } from "flowbite-react";
 
 import PlaceCard from "../components/PlaceCard";
 import Footer from "../components/Footer";
+import prisma from "../lib/prismaClient";
+import { prismaPlaceToPlace } from "../lib/transforms";
 
 /*******************************************************************************
   Types
@@ -27,10 +29,13 @@ export const getStaticProps: GetStaticProps<{
   categories: string[];
   tags: string[];
 }> = async () => {
+
   const promises = [
-    fetch(`${process.env.HOST}/api/places`).then((r) => r.json()),
-    fetch(`${process.env.HOST}/api/categories`).then((r) => r.json()),
-    fetch(`${process.env.HOST}/api/tags`).then((r) => r.json()),
+    prisma.place.findMany({
+      include: { tags: true, categories: true },
+    }).then(res => res.map(prismaPlaceToPlace)),
+    prisma.category.findMany(),
+    prisma.tag.findMany()
   ];
   const responses = Object.assign({}, ...(await Promise.all(promises)));
   const { places, categories, tags } = responses;
